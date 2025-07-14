@@ -1,5 +1,8 @@
-# Automated-Serverless-Billing-Receipt-Delivery-System-on-AWS
+# **Automated Serverless Billing Receipt Delivery System on AWS**
 
+
+## **💡 Problem Statement** :
+Manually sending monthly billing receipts to customers is time-consuming and error-prone. This system solves that problem by automating the entire process end-to-end, ensuring each customer receives an accurate, personalized, and professional receipt every month.
 
 
 
@@ -12,7 +15,7 @@ This project leverages the power of AWS serverless services — including S3, La
 
 
 
-# **🏗️ System Architecture :**
+## **🏗️ System Architecture :**
 
 The **system is entirely serverless and relies on the following AWS services** :
 
@@ -27,6 +30,42 @@ The **system is entirely serverless and relies on the following AWS services** :
  - **Amazon SES (Simple Email Service)** : Sends billing emails to each customer.
 
 This architecture allowed me to build a scalable and cost-efficient pipeline that can handle varying workloads without worrying about server management.
+
+
+## **📨 Key Features :**
+
+ - Fully automated billing receipt emails.
+
+ - Serverless design (no servers to manage).
+
+ - Decoupled and scalable architecture.
+
+ - Clean, formatted plain-text email receipts.
+
+ - Easily extendable (e.g., adding PDF attachments, multi-language support).
+
+
+## **🛠️ Tech Stack :**
+
+ - **AWS Lambda**
+
+ - **AWS S3**
+
+ - **AWS SQS**
+
+ - **AWS SES**
+
+ - **Python (boto3)**
+
+## **🚨 How It Works :**
+
+ 1️⃣ Upload a CSV file to the S3 bucket.
+ 
+ 
+ 2️⃣ Lambda 1 is triggered → parses CSV → groups data → pushes messages to SQS.
+
+ 
+ 3️⃣ Lambda 2 (triggered by SQS) → generates email body → sends email via SES to each customer.
 
 
 
