@@ -67,6 +67,12 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
  
  3️⃣ Lambda 2 (triggered by SQS) → generates email body → sends email via SES to each customer.
 
+## ✅ **Dummy CSV data file**
+    customer_id,customer_name,email,service_name,charges
+    CUST001,John Doe,john@example.com,Cloud Backup,50
+    CUST001,John Doe,john@example.com,API Hosting,30
+    CUST002,Jane Smith,jane@example.com,Monitoring,20
+
 
 
 ## ⚡ **Key benefits :**
