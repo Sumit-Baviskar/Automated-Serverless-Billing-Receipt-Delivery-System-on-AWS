@@ -367,7 +367,7 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
    - Select your queue (e.g., billing-customer-queue).
 
-   = Configure batch size (default is 10 — can set to 1 for simpler testing).
+   - Configure batch size (default is 10 — can set to 1 for simpler testing).
 
 
 ### 1️⃣4️⃣ **Test end-to-end**
