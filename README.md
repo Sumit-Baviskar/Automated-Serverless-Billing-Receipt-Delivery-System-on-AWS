@@ -67,12 +67,322 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
  
  3️⃣ Lambda 2 (triggered by SQS) → generates email body → sends email via SES to each customer.
 
+
 ## ✅ **Dummy CSV data file**
     customer_id,customer_name,email,service_name,charges
     CUST001,John Doe,john@example.com,Cloud Backup,50
     CUST001,John Doe,john@example.com,API Hosting,30
     CUST002,Jane Smith,jane@example.com,Monitoring,20
 
+
+## ✅ ✅ **Step-by-step setup :**
+
+### 1️⃣ Create your S3 bucket
+
+ 📍 **Steps :**
+
+   - Go to AWS Console → S3 → Create bucket.(Example bucket name: company-billing-bucket)
+
+### 2️⃣ Create your SQS queue
+
+ 📍 **Steps :**
+
+   - Go to AWS Console → SQS → Create queue.( Example queue name: billing-customer-queue.) → Create
+
+   - Copy the Queue URL
+
+### 3️⃣ Create your Lambda function (Example name Parser lambda)
+
+📍 **Steps :**
+
+   - Go to AWS Console → Lambda → Create function.( Example Function name: parser-customer-lambda.)
+
+   - Click Create function.
+
+### 4️⃣ Add environment variable for SQS URL
+
+📍 **Steps :**
+
+   - In Lambda console → Configuration → Environment variables → Edit → Add.
+
+   - Key: SQS_URL.
+
+### 5️⃣ **Add Lambda code :**
+ 
+
+    import boto3
+    import csv
+    import json
+    import os
+    import urllib.parse
+
+    # Create AWS clients
+    s3 = boto3.client("s3")
+    sqs = boto3.client("sqs")
+
+    # Get SQS queue URL from environment variable
+    SQS_URL = os.environ["SQS_URL"]
+
+    def lambda_handler(event, context):
+        # Log the received event for debugging
+        print("✅ Event received:", json.dumps(event))
+    
+        # Get the first record (in case multiple records are uploaded at once)
+        record = event["Records"][0]
+        bucket = record["s3"]["bucket"]["name"]
+        key = urllib.parse.unquote_plus(record["s3"]["object"]["key"])
+    
+        print(f"🪣 Bucket: {bucket}, 📄 Key: {key}")
+
+        # Get the object (CSV file) from S3
+        response = s3.get_object(Bucket=bucket, Key=key)
+        csv_content = response["Body"].read().decode("utf-8").splitlines()
+        reader = csv.DictReader(csv_content)
+
+        # Dictionary to store customer-wise data
+        customer_data = {}
+
+        # Iterate over each row in the CSV
+        for row in reader:
+            cust_id = row["customer_id"]
+            cust_name = row["customer_name"]
+            email = row["email"]
+            service_name = row["service_name"]
+            charges = float(row["charges"])
+
+            # Initialize data for new customer if not already present
+            if cust_id not in customer_data:
+                customer_data[cust_id] = {
+                    "customer_id": cust_id,
+                    "customer_name": cust_name,
+                    "email": email,
+                    "services": []
+                }
+
+            # Append service details for the customer
+            customer_data[cust_id]["services"].append({
+                "service_name": service_name,
+                "charges": charges
+            })
+
+        # Send each customer's data as a separate message to SQS
+        for cust_id, data in customer_data.items():
+            sqs.send_message(
+                QueueUrl=SQS_URL,
+                MessageBody=json.dumps(data)
+            )
+            print(f"📤 Message pushed to SQS for customer: {cust_id}")
+
+        return {
+            "statusCode": 200,
+            "body": "✅ Messages pushed to SQS for each customer"
+        }
+
+
+
+### 6️⃣ Set Lambda permissions
+  
+ 📍 **Steps :**
+ 
+  - **IAM permissions :**
+    
+     - Go to Lambda console → Configuration → Permissions → Execution role.
+
+     - Click Edit → Attach policies.
+
+         - Attach:
+
+             - AmazonS3ReadOnlyAccess
+
+             - AmazonSQSFullAccess
+
+
+
+### 7️⃣ **Add S3 trigger to Lambda**
+
+📍 **Steps :**
+
+   - Go to S3 → Your bucket → Properties → Event notifications → Create event notification.
+
+   - Name: billing-upload-trigger.
+
+   - Event type: PUT (object created).
+
+   - Prefix (optional): e.g., billing-files/.
+
+   - Suffix (optional): .csv.
+
+   - Destination: Lambda function, choose your Lambda.
+
+
+### 8️⃣ **Configure SES (Simple Email Service) :**
+
+📍 **Steps :**
+    
+   - Go to SES console → Verify email address.
+
+   - Verify your "from" email address (e.g., billing@yourcompany.com).
+
+   - If in sandbox mode, also verify "to" email addresses (test customers).
+
+   - Check that verification status shows verified.
+
+
+### 9️⃣ **Create your Lambda function (Example name Parser lambda)**
+
+📍 **Steps :**
+
+   - Go to AWS Console → Lambda → Create function.( Example Function name: worker-customer-lambda.)
+
+   - Click Create function.
+
+
+
+### 1️⃣0️⃣ **Add environment variable for SQS URL**
+
+ 📍 **Steps :**
+ 
+   - In Lambda console → Configuration → Environment variables → Edit → Add.
+
+   - Key: SQS_URL.
+
+    import boto3
+    import json
+    import os
+    
+    # Create AWS SES client
+    ses = boto3.client("ses")
+
+    # Get sender email from environment variable
+    SENDER_EMAIL = os.environ["SENDER_EMAIL"]
+
+    def lambda_handler(event, context):
+        try:
+            # Process each SQS message
+            for record in event["Records"]:
+                # Parse JSON message body
+                message = json.loads(record["body"])
+                customer_name = message["customer_name"]
+                email = message["email"]
+                services = message["services"]
+    
+                # Calculate total charges for this customer
+                total_charges = sum(service["charges"] for service in services)
+
+                # Build plain-text email body
+                body_text = f"""Hi {customer_name},
+    
+    Thank you for choosing [Your Company Name]!
+    Here’s a summary of the services you used in Last Month:
+
+    --------------------------------------------------------
+    Service Name         | Amount (USD)
+    --------------------------------------------------------
+    """
+
+                # Add each service as a row in the email
+                for svc in services:
+                    # Left-align service name in 20 chars, right-align amount
+                    body_text += f"{svc['service_name']:<20} | ${svc['charges']:.2f}\n"
+
+                # Add total and closing remarks
+                body_text += f"""--------------------------------------------------------
+    Total Charges        | ${total_charges:.2f}
+    --------------------------------------------------------
+
+    Your support enables us to keep providing you with top-notch services.
+    If you have any questions about your bill or need assistance, feel free to reply to this email or contact our support team.
+
+    Thank you for your continued trust!
+
+    Best regards,
+    [Your Company Name] Billing Team
+    xxxxxxxxx@company.com | xxxxxxhelp@support.com
+    """
+
+                # Send email using AWS SES
+                ses.send_email(
+                    Source=SENDER_EMAIL,
+                    Destination={"ToAddresses": [email]},
+                    Message={
+                        "Subject": {"Data": "Your Monthly Service Receipt - July 2025"},
+                        "Body": {
+                            "Text": {"Data": body_text}
+                        }
+                    }
+                )
+
+                # Log success for this customer
+                print(f"✅ Email sent successfully to: {customer_name} ({email})")
+
+            # Return success response after processing all messages
+            return {
+                "statusCode": 200,
+                "body": "✅ All SQS messages processed and emails sent successfully."
+            }
+
+        except Exception as e:
+            # Log any errors
+            print(f"❌ Error: {str(e)}")
+            return {
+                "statusCode": 500,
+                "body": f"❌ Error processing SQS messages: {str(e)}"
+            }
+
+
+
+### 1️⃣1️⃣ **Attach environment variables :**
+
+ 📍 **Steps :**
+ 
+   - In Lambda console → Configuration → Environment variables → Edit → Add.
+
+         Key: SENDER_EMAIL
+         Value: billing@yourcompany.com
+
+
+
+### 1️⃣2️⃣ **Attach IAM permissions**
+
+ 📍 **Steps :**
+   
+   - Go to Lambda console → Configuration → Permissions → Execution role.
+
+   - Click Edit → Attach policies.
+
+     - Attach:
+
+        - AmazonS3FullAccess
+
+        - AmazonSESFullAccess
+
+        - AmazonSQSFullAccess (or ReceiveMessage & DeleteMessage)
+
+
+### 1️⃣3️⃣ **Set SQS as trigger for Worker Lambda**
+ 
+ 📍 **Steps :**
+   
+   - Go to Lambda console → Configuration → Triggers → Add trigger → SQS.
+
+   - Select your queue (e.g., billing-customer-queue).
+
+   = Configure batch size (default is 10 — can set to 1 for simpler testing).
+
+
+### 1️⃣4️⃣ **Test end-to-end**
+
+ 📍 **Steps :**
+ 
+   - Upload CSV to S3 (Parser Lambda is triggered).
+
+   - Parser Lambda pushes messages to SQS.
+
+   - Worker Lambda gets SQS messages, generates PDFs, uploads to S3, and sends email via SES.
+
+## **💡 Sample Output Email (Email Received by Customer)** :
+
+<img width="1105" height="608" alt="Image" src="https://github.com/user-attachments/assets/aa98cd45-42ca-451f-864a-e7247f3ebace" />
 
 
 ## ⚡ **Key benefits :**
