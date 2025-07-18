@@ -39,7 +39,7 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
 ## **Project video link :**
 
- [Video Link](https://drive.google.com/file/d/10mgVvskvuKXcH5DYC9TvRtCR0faQCcrE/view?usp=sharing)
+###  [**Video Link**](https://drive.google.com/file/d/10mgVvskvuKXcH5DYC9TvRtCR0faQCcrE/view?usp=sharing)
 
 
 
