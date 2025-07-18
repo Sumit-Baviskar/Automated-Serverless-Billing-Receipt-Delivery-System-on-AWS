@@ -17,6 +17,11 @@ This project leverages the power of AWS serverless services — including S3, La
 
 ## **🏗️ System Architecture :**
 
+
+![Image](https://github.com/user-attachments/assets/360acd2a-aebd-4202-9a8b-c3a753d9cf2d)
+
+
+
 The **system is entirely serverless and relies on the following AWS services** :
 
  - **Amazon S3** : Stores uploaded CSV files containing customer billing data.
