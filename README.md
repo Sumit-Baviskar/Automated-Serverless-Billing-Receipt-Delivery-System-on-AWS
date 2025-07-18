@@ -32,6 +32,12 @@ The **system is entirely serverless and relies on the following AWS services** :
 This architecture allowed me to build a scalable and cost-efficient pipeline that can handle varying workloads without worrying about server management.
 
 
+## **Project video link :**
+
+ [Video Link](https://drive.google.com/file/d/10mgVvskvuKXcH5DYC9TvRtCR0faQCcrE/view?usp=sharing)
+
+
+
 ## **📨 Key Features :**
 
  - Fully automated billing receipt emails.
@@ -73,6 +79,8 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
     CUST001,John Doe,john@example.com,Cloud Backup,50
     CUST001,John Doe,john@example.com,API Hosting,30
     CUST002,Jane Smith,jane@example.com,Monitoring,20
+
+
 
 
 ## ✅ ✅ **Step-by-step setup :**
@@ -394,4 +402,5 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
   - 🔒 Ensures data privacy and security: Implements robust measures to safeguard sensitive billing data.
 
   - ☁️ Scales effortlessly: Serverless architecture handles any number of customers without infrastructure management.
+
 
