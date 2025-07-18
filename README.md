@@ -408,4 +408,12 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
   - ☁️ Scales effortlessly: Serverless architecture handles any number of customers without infrastructure management.
 
+## 👨‍💻 **Author**
+
+### **Sumit Baviskar**  
+
+   🔗 [LinkedIn](https://www.linkedin.com/in/sumit-baviskar/)  
+
+   🔗 [Portfolio/GitHub](https://nice-web-16a.notion.site/Hello-I-m-Sumit-Baviskar-18e7130b12678024b30fc011c22427b7)
+
 
