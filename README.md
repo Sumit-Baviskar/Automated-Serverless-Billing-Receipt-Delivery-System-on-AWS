@@ -118,7 +118,8 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
    - In Lambda console → Configuration → Environment variables → Edit → Add.
 
-   - Key: SQS_URL.
+    Key: SQS_URL
+    Value: ***********
 
 ### 5️⃣ **Add Lambda code :**
  
@@ -262,12 +263,15 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
     import boto3
     import json
     import os
-    
-    # Create AWS SES client
-    ses = boto3.client("ses")
+    from datetime import datetime
 
-    # Get sender email from environment variable
+    # Create AWS clients
+    ses = boto3.client("ses")
+    s3 = boto3.client("s3")
+
+    # Get sender email from environment variables
     SENDER_EMAIL = os.environ["SENDER_EMAIL"]
+    BUCKET_NAME = "******"  # ✅ Only bucket name, no s3:// prefix
 
     def lambda_handler(event, context):
         try:
@@ -278,13 +282,13 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
                 customer_name = message["customer_name"]
                 email = message["email"]
                 services = message["services"]
-    
+
                 # Calculate total charges for this customer
                 total_charges = sum(service["charges"] for service in services)
 
                 # Build plain-text email body
                 body_text = f"""Hi {customer_name},
-    
+
     Thank you for choosing [Your Company Name]!
     Here’s a summary of the services you used in Last Month:
 
@@ -293,12 +297,11 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
     --------------------------------------------------------
     """
 
-                # Add each service as a row in the email
+                # Add each service row
                 for svc in services:
-                    # Left-align service name in 20 chars, right-align amount
                     body_text += f"{svc['service_name']:<20} | ${svc['charges']:.2f}\n"
-
-                # Add total and closing remarks
+    
+                # Add total and closing text
                 body_text += f"""--------------------------------------------------------
     Total Charges        | ${total_charges:.2f}
     --------------------------------------------------------
@@ -313,6 +316,15 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
     xxxxxxxxx@company.com | xxxxxxhelp@support.com
     """
 
+                # Save email text as a file to S3
+                file_name = f"{message['customer_id']}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt"
+                s3.put_object(
+                    Bucket=BUCKET_NAME,
+                    Key=file_name,
+                    Body=body_text.encode("utf-8")
+                )
+                print(f"📄 Saved email text to S3 bucket: {BUCKET_NAME}/{file_name}")
+
                 # Send email using AWS SES
                 ses.send_email(
                     Source=SENDER_EMAIL,
@@ -324,14 +336,12 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
                         }
                     }
                 )
-
-                # Log success for this customer
                 print(f"✅ Email sent successfully to: {customer_name} ({email})")
 
-            # Return success response after processing all messages
+            # Return success response
             return {
                 "statusCode": 200,
-                "body": "✅ All SQS messages processed and emails sent successfully."
+                "body": "✅ All SQS messages processed, emails sent, and text files saved to S3 successfully."
             }
 
         except Exception as e:
@@ -344,6 +354,7 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
 
 
+
 ### 1️⃣1️⃣ **Attach environment variables :**
 
  📍 **Steps :**
@@ -352,6 +363,9 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
          Key: SENDER_EMAIL
          Value: billing@yourcompany.com
+
+         Key: BUCKET_NAME
+         Value: "******" 
 
 
 
