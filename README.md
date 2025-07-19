@@ -434,4 +434,5 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
    🔗 [Portfolio/GitHub](https://nice-web-16a.notion.site/Hello-I-m-Sumit-Baviskar-18e7130b12678024b30fc011c22427b7)
 
+   📧 [Gmail](https://mail.google.com/mail/?view=cm&to=st.baviskar43@gmail.com)
 
