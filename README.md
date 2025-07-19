@@ -41,6 +41,10 @@ This architecture allowed me to build a scalable and cost-efficient pipeline tha
 
 ###  [**Video Link**](https://drive.google.com/file/d/10mgVvskvuKXcH5DYC9TvRtCR0faQCcrE/view?usp=sharing)
 
+## **Project Blog link on Medium:**
+
+###  [**Blog link**](https://medium.com/@sumitbaviskar43/automating-billing-emails-with-aws-lambda-s3-sqs-ses-no-server-needed-ae65ad1f05cb)
+
 
 
 ## **📨 Key Features :**
